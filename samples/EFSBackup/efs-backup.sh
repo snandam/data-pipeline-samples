@@ -29,10 +29,27 @@ echo 'sudo mkdir /backup'
 sudo mkdir /backup
 echo 'sudo mkdir /mnt/backups'
 sudo mkdir /mnt/backups
-echo "sudo mount -t nfs $source /backup"
-sudo mount -t nfs $source /backup
-echo "sudo mount -t nfs $destination /mnt/backups"
-sudo mount -t nfs $destination /mnt/backups
+
+# Connect after verifying port 2049 is open
+if [[ $(/usr/bin/nc -zv -w 2 $source 2049 >/dev/null 2>&1 ; echo $?) = 0 ]]
+ then
+    echo "sudo mount -t nfs $source /backup"
+    sudo mount -t nfs $source /backup
+ else
+   echo "unable to mount $source. connection failed"
+   exit 1
+fi
+
+# Connect after verifying port 2049 is open
+if [[ $(/usr/bin/nc -zv -w 2 $destination 2049 >/dev/null 2>&1 ; echo $?) = 0 ]]
+ then
+    echo "sudo mount -t nfs $destination /mnt/backups"
+    sudo mount -t nfs $destination /mnt/backups
+ else
+   echo "unable to mount $destination. connection failed"
+   exit 1
+fi
+
 
 # we need to decrement retain because we start counting with 0 and we need to remove the oldest backup
 let "retain=$retain-1"
